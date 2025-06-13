@@ -27,15 +27,27 @@ func main() {
 	// 	log.Fatal("Error loading .env file")
 	// }
 
-	psqlInfo := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`,
-		os.Getenv("PGHOST"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-		os.Getenv("PGDATABASE"),
-	)
+	// psqlInfo := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`,
+	// 	os.Getenv("PGHOST"),
+	// 	os.Getenv("PGPORT"),
+	// 	os.Getenv("PGUSER"),
+	// 	os.Getenv("PGPASSWORD"),
+	// 	os.Getenv("PGDATABASE"),
+	// )
 
-	DB, err = sql.Open("postgres", psqlInfo)
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Println("DATABASE_URL not set, using manual config")
+		dbURL = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
+			os.Getenv("PGHOST"),
+			os.Getenv("PGPORT"),
+			os.Getenv("PGUSER"),
+			os.Getenv("PGPASSWORD"),
+			os.Getenv("PGDATABASE"),
+		)
+	}
+
+	DB, err = sql.Open("postgres", dbURL)
 
 	if err != nil {
 		log.Fatalf("Error opening database: %v\n", err)
