@@ -65,6 +65,9 @@ func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 	router.GET("/", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+	router.GET("/health", func(c *gin.Context) {
+		c.String(200, "OK")
+	})
 	router.GET("/cinemas", controllers.GetaLLCinema)
 	router.POST("/cinemas", controllers.InsertCinema)
 	router.PUT("/cinemas/:id", controllers.UpdateCinema)
@@ -86,5 +89,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
+	log.Println("Server has stopped unexpectedly")
 	// fmt.Println("Successfully connected!")
 }
