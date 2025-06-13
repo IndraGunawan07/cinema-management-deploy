@@ -52,6 +52,7 @@ func main() {
 
 	router := gin.Default()
 	router.SetTrustedProxies([]string{"127.0.0.1"})
+	router.GET("/", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 	router.GET("/cinemas", controllers.GetaLLCinema)
 	router.POST("/cinemas", controllers.InsertCinema)
 	router.PUT("/cinemas/:id", controllers.UpdateCinema)
