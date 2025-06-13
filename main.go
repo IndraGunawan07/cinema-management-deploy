@@ -75,6 +75,11 @@ func main() {
 		port = "8080"
 	}
 
+	log.Println("Environment variables:")
+	for _, e := range os.Environ() {
+		log.Println(e)
+	}
+
 	// Start server with proper error handling
 	log.Println("Starting server at port:", port)
 	err = router.Run("0.0.0.0:" + port)
