@@ -76,8 +76,10 @@ func main() {
 	}
 
 	// Start server with proper error handling
-	if err := router.Run("0.0.0.0:" + port); err != nil {
-		panic("Server failed to start: " + err.Error())
+	log.Println("Starting server at port:", port)
+	err = router.Run("0.0.0.0:" + port)
+	if err != nil {
+		log.Fatal("Server failed to start:", err)
 	}
 	// fmt.Println("Successfully connected!")
 }
