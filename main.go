@@ -21,6 +21,8 @@ var (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+
 	err := godotenv.Load("config/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -49,11 +51,20 @@ func main() {
 	database.DBMigrate(DB)
 
 	router := gin.Default()
+	router.SetTrustedProxies([]string{"127.0.0.1"})
 	router.GET("/cinemas", controllers.GetaLLCinema)
 	router.POST("/cinemas", controllers.InsertCinema)
 	router.PUT("/cinemas/:id", controllers.UpdateCinema)
 	router.DELETE("/cinemas/:id", controllers.DeleteCinema)
 
-	router.Run(":" + os.Getenv("PORT"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Start server with proper error handling
+	if err := router.Run("0.0.0.0:" + port); err != nil {
+		panic("Server failed to start: " + err.Error())
+	}
 	// fmt.Println("Successfully connected!")
 }
