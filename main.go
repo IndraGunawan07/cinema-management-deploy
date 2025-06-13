@@ -54,6 +54,6 @@ func main() {
 	router.PUT("/cinemas/:id", controllers.UpdateCinema)
 	router.DELETE("/cinemas/:id", controllers.DeleteCinema)
 
-	router.Run(":8080")
+	router.Run(":" + os.Getenv("PORT"))
 	// fmt.Println("Successfully connected!")
 }
