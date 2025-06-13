@@ -20,7 +20,9 @@ var (
 )
 
 func main() {
+	log.Println("1. Application starting") // First line in main()
 	gin.SetMode(gin.ReleaseMode)
+	log.Println("2. Gin mode set")
 
 	// err := godotenv.Load("config/.env")
 	// if err != nil {
