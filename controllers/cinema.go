@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetaLLCinema(c *gin.Context) {
+func GetAllCinema(c *gin.Context) {
 	var (
 		result gin.H
 	)

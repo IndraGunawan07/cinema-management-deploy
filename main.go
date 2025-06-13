@@ -62,13 +62,19 @@ func main() {
 
 	database.DBMigrate(DB)
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(gin.Logger())
+
 	router.SetTrustedProxies(nil)
-	router.GET("/", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+	router.GET("/", func(c *gin.Context) {
+		log.Println("Root route hit")
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 	router.GET("/health", func(c *gin.Context) {
 		c.String(200, "OK")
 	})
-	router.GET("/cinemas", controllers.GetaLLCinema)
+	router.GET("/cinemas", controllers.GetAllCinema)
 	router.POST("/cinemas", controllers.InsertCinema)
 	router.PUT("/cinemas/:id", controllers.UpdateCinema)
 	router.DELETE("/cinemas/:id", controllers.DeleteCinema)
