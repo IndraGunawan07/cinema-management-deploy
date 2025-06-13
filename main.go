@@ -9,7 +9,6 @@ import (
 
 	"cinema-management/controllers"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
@@ -23,10 +22,10 @@ var (
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 
-	err := godotenv.Load("config/.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load("config/.env")
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	psqlInfo := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`,
 		os.Getenv("PGHOST"),
