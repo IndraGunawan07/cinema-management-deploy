@@ -4,7 +4,9 @@ import (
 	"cinema-management/database"
 	"database/sql"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 
@@ -79,60 +81,77 @@ func main() {
 	// }
 	// // fmt.Println("Successfully connected!")
 
-	log.Println("1. Application starting")
+	// 1. Immediate startup logging
+	log.Println("🚀 Application booting")
+	startTime := time.Now()
+
+	// 2. Initialize Gin in release mode
 	gin.SetMode(gin.ReleaseMode)
-	log.Println("2. Gin mode set")
+	router := gin.New()
 
-	// Database connection
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		log.Fatal("DATABASE_URL not set")
-	}
-
-	DB, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatal("DB open failed:", err)
-	}
-	defer DB.Close()
-
-	// Retry connection
-	maxRetries := 3
-	for i := 0; i < maxRetries; i++ {
-		err = DB.Ping()
-		if err == nil {
-			break
-		}
-		log.Printf("DB ping attempt %d failed: %v", i+1, err)
-	}
-	if err != nil {
-		log.Fatal("DB connection failed:", err)
-	}
-	log.Println("3. Database connected")
-
-	// Run migrations
-	log.Println("4. Running migrations...")
-	database.DBMigrate(DB)
-	log.Println("5. Migrations completed")
-
-	// Router setup
-	router := gin.Default()
-	router.SetTrustedProxies([]string{"127.0.0.1"})
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+	// 3. Pre-start health check (for Railway)
+	router.GET("/preflight", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
 	})
 
-	// Start server (with keep-alive)
+	// 4. Database connection with retries
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("❌ DATABASE_URL not set")
+	}
+
+	var DB *sql.DB
+	var err error
+	for i := 0; i < 5; i++ {
+		DB, err = sql.Open("postgres", dbURL)
+		if err == nil {
+			err = DB.Ping()
+			if err == nil {
+				break
+			}
+		}
+		log.Printf("🔁 DB attempt %d: %v", i+1, err)
+		time.Sleep(2 * time.Second)
+	}
+	if err != nil {
+		log.Fatal("💥 DB connection failed:", err)
+	}
+	defer DB.Close()
+	log.Println("✅ Database connected")
+
+	// 5. Run migrations
+	log.Println("🔄 Running migrations...")
+	database.DBMigrate(DB)
+	log.Println("👍 Migrations completed")
+
+	// 6. Real health check
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":   "healthy",
+			"uptime":   time.Since(startTime).String(),
+			"database": "connected",
+		})
+	})
+
+	// 7. Start server in goroutine with keep-alive
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Println("6. Starting server on port", port)
-	done := make(chan bool)
+	server := &http.Server{
+		Addr:    "0.0.0.0:" + port,
+		Handler: router,
+	}
+
+	// Run server in goroutine
 	go func() {
-		if err := router.Run("0.0.0.0:" + port); err != nil {
-			log.Fatal("Server error:", err)
+		log.Printf("🌐 Server listening on :%s", port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("💥 Server failed: %v", err)
 		}
 	}()
-	<-done // Block indefinitely
+
+	// Block forever
+	select {}
 }
